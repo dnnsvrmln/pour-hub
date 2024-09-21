@@ -3,7 +3,6 @@ package com.dnnsvrmln.pourservice.controller;
 import com.dnnsvrmln.pourservice.model.dto.BeerResponse;
 import com.dnnsvrmln.pourservice.service.BeerService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +30,7 @@ public class BeerController {
     public ResponseEntity<BeerResponse> getBeerById(@PathVariable int id) {
         var beer = beerService.getBeerById(id);
 
-        return beer.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return ResponseEntity.ok(beer);
     }
 
 }

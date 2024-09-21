@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +19,10 @@ public class BeerService {
         return beers.stream().map(BeerResponse::map).toList();
     }
 
-    public Optional<BeerResponse> getBeerById(int id) {
+    public BeerResponse getBeerById(int id) {
         var beer = beerRepository.findById(id);
 
-        return beer.map(BeerResponse::map);
+        return BeerResponse.map(beer);
     }
 
 }

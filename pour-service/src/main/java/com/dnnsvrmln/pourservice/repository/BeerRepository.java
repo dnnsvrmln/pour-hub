@@ -1,11 +1,12 @@
 package com.dnnsvrmln.pourservice.repository;
 
 import com.dnnsvrmln.pourservice.model.Beer;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class BeerRepository {
@@ -20,8 +21,11 @@ public class BeerRepository {
         return beers;
     }
 
-    public Optional<Beer> findById(int id) {
-        return Optional.of(beers.stream().filter(beer -> beer.getId() == id).findFirst()).orElse(Optional.empty());
+    public Beer findById(int id) {
+        return beers.stream()
+                    .filter(beer -> beer.getId() == id)
+                    .findFirst()
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Beer with ID: '" + id + "' not found"));
     }
 
     private static List<Beer> createBeers() {
