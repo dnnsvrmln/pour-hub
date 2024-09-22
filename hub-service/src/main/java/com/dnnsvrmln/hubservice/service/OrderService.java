@@ -3,8 +3,8 @@ package com.dnnsvrmln.hubservice.service;
 import com.dnnsvrmln.hubservice.model.Order;
 import com.dnnsvrmln.hubservice.model.dto.OrderRequest;
 import com.dnnsvrmln.hubservice.model.dto.OrderResponse;
+import com.dnnsvrmln.hubservice.model.dto.PourResponse;
 import com.dnnsvrmln.hubservice.repository.OrderRepository;
-import com.dnnsvrmln.pourservice.model.Beer;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,7 +26,7 @@ public class OrderService {
         for (var orderItem : orderItems) {
             try {
                 var beerId = orderItem.getBeerId();
-                var beer = restTemplate.getForObject("http://localhost:8081/v1/api/beer/" + beerId, Beer.class);
+                var beer = restTemplate.getForObject("http://localhost:8081/v1/api/beer/" + beerId, PourResponse.class);
 
                 orderItem.setBeerId(beerId);
                 orderItem.setBeerName(beer.getName());
