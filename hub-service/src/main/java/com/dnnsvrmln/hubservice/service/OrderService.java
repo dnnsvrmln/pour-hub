@@ -26,7 +26,7 @@ public class OrderService {
         for (var orderItem : orderItems) {
             try {
                 var beerId = orderItem.getBeerId();
-                var beer = restTemplate.getForObject("http://localhost:8081/v1/api/beer/" + beerId, PourResponse.class);
+                var beer = restTemplate.getForObject("http://pour-service/v1/api/beer/" + beerId, PourResponse.class);
 
                 orderItem.setBeerId(beerId);
                 orderItem.setBeerName(beer.getName());
