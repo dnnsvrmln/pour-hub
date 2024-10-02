@@ -10,6 +10,4 @@ import lombok.NoArgsConstructor;
 public class PourResponse {
     private int id;
     private String name;
-    private int bartenderPreparationTime;
-    private int pourTime;
 }

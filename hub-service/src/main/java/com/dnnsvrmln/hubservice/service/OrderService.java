@@ -1,8 +1,9 @@
 package com.dnnsvrmln.hubservice.service;
 
 import com.dnnsvrmln.hubservice.configuration.BartenderConfiguration;
-import com.dnnsvrmln.hubservice.model.Order;
 import com.dnnsvrmln.hubservice.model.OrderItem;
+import com.dnnsvrmln.hubservice.model.dto.OrderDto;
+import com.dnnsvrmln.hubservice.model.dto.OrderItemDto;
 import com.dnnsvrmln.hubservice.model.dto.OrderRequest;
 import com.dnnsvrmln.hubservice.model.dto.OrderResponse;
 import com.dnnsvrmln.hubservice.model.dto.PourResponse;
@@ -15,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,23 +36,15 @@ public class OrderService {
     }
 
     public OrderResponse placeOrder(OrderRequest orderRequest) {
-        var orderItems = Order.map(orderRequest).getOrderItems();
-        var futures = new ArrayList<CompletableFuture<Void>>();
-
-        for (var orderItem : orderItems) {
-            for (int i = 0; i < orderItem.getQuantity(); i++) {
-                futures.add(pourBeer(orderItem));
-            }
-        }
+        var pourFutures = createPourFutures(OrderDto.map(orderRequest).getOrderItemsDto());
 
         try {
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            var pourResponses = pourFutures.stream().map(CompletableFuture::join).toList();
+            var order = orderRepository.place(OrderItem.aggregateOrderItems(pourResponses));
+            return OrderResponse.map(order);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process the order");
         }
-
-        var order = orderRepository.place(orderItems);
-        return OrderResponse.map(order);
     }
 
     public OrderResponse getOrderById(int orderId) {
@@ -59,21 +53,30 @@ public class OrderService {
         return OrderResponse.map(order);
     }
 
-    private CompletableFuture<Void> pourBeer(OrderItem orderItem) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                var beerId = orderItem.getBeerId();
-                var beer = restTemplate.getForObject("http://pour-service/v1/api/beer/" + beerId, PourResponse.class);
+    private List<CompletableFuture<PourResponse>> createPourFutures(List<OrderItemDto> orderItemsDto) {
+        var pourFutures = new ArrayList<CompletableFuture<PourResponse>>();
 
-                orderItem.setBeerId(beerId);
-                orderItem.setBeerName(beer.getName());
-                var totalPourTime = beer.getBartenderPreparationTime() + beer.getPourTime();
-                Thread.sleep(totalPourTime * 1000L);
+        for (var orderItem : orderItemsDto) {
+            if (orderItem.getQuantity() < 1) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                                  "For beer with ID: '" + orderItem.getBeerId() + "' the quantity must be at least one or higher");
+            }
+
+            for (int i = 0; i < orderItem.getQuantity(); i++) {
+                pourFutures.add(pourBeer(orderItem.getBeerId()));
+            }
+        }
+
+        return pourFutures;
+    }
+
+    private CompletableFuture<PourResponse> pourBeer(int beerId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var requestUrl = "http://pour-service/v1/api/beer/pour?id=" + beerId;
+                return restTemplate.postForObject(requestUrl, null, PourResponse.class);
             } catch (HttpClientErrorException.NotFound e) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Beer with ID: '" + orderItem.getBeerId() + "' not found");
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to pour the beers");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Beer with ID: '" + beerId + "' not found");
             }
         }, executorService);
     }

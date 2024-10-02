@@ -9,6 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrderItemDto {
     private int beerId;
-    private String beerName;
     private int quantity;
 }
