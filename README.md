@@ -46,6 +46,7 @@ It consists of four main components:
 * GET /v1/api/beer: Retrieve all available beers.
 * GET /v1/api/beer/{id}: Retrieve a single available beer.
 * POST /v1/api/order: Place an order.
+* POST /v1/api/order/another-round-of-beers/{id}: Place Another Round of Beers order.
 * GET /v1/api/order/{id}
 
 ### Example Usage

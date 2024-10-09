@@ -3,10 +3,8 @@ package com.dnnsvrmln.pourservice.model.dto;
 import com.dnnsvrmln.pourservice.model.Beer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

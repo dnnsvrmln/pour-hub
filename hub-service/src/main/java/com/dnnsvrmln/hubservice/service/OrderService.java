@@ -36,7 +36,25 @@ public class OrderService {
     }
 
     public OrderResponse placeOrder(OrderRequest orderRequest) {
-        var pourFutures = createPourFutures(OrderDto.map(orderRequest).getOrderItemsDto());
+        var orderItems = OrderDto.map(orderRequest).getOrderItemsDto();
+        return processOrder(orderItems);
+    }
+
+    public OrderResponse placeAnotherRoundOfBeer(int previousOrderId) {
+        var previousOrder = orderRepository.findOrderById(previousOrderId);
+        var orderItems = OrderDto.map(previousOrder).getOrderItemsDto();
+
+        return processOrder(orderItems);
+    }
+
+    public OrderResponse getOrderById(int orderId) {
+        var order = orderRepository.findOrderById(orderId);
+
+        return OrderResponse.map(order);
+    }
+
+    private OrderResponse processOrder(List<OrderItemDto> orderItemsDto) {
+        var pourFutures = createPourFutures(orderItemsDto);
 
         try {
             var pourResponses = pourFutures.stream().map(CompletableFuture::join).toList();
@@ -45,12 +63,6 @@ public class OrderService {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process the order");
         }
-    }
-
-    public OrderResponse getOrderById(int orderId) {
-        var order = orderRepository.findOrderById(orderId);
-
-        return OrderResponse.map(order);
     }
 
     private List<CompletableFuture<PourResponse>> createPourFutures(List<OrderItemDto> orderItemsDto) {

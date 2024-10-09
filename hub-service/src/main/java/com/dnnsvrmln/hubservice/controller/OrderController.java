@@ -28,6 +28,13 @@ public class OrderController {
         return new ResponseEntity<>(order, HttpStatus.CREATED);
     }
 
+    @PostMapping("/another-round-of-beers/{id}")
+    public ResponseEntity<OrderResponse> placeAnotherRoundOfBeers(@PathVariable int id) {
+        var order = orderService.placeAnotherRoundOfBeer(id);
+
+        return new ResponseEntity<>(order, HttpStatus.CREATED);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable int id) {
         var order = orderService.getOrderById(id);
